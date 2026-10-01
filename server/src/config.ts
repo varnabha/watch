@@ -1,0 +1,3 @@
+import { z } from 'zod';
+const schema=z.object({NODE_ENV:z.enum(['development','test','production']).default('development'),PORT:z.coerce.number().int().positive().default(3000),APP_ORIGIN:z.string().url(),SESSION_SECRET:z.string().min(32),USER1_EMAIL:z.string().email(),USER1_NAME:z.string().min(1),USER1_PASSWORD_HASH:z.string().min(20),USER2_EMAIL:z.string().email(),USER2_NAME:z.string().min(1),USER2_PASSWORD_HASH:z.string().min(20),STORAGE_ACCOUNT_NAME:z.string().optional(),ACS_CONNECTION_STRING:z.string().optional()});
+export type Config=z.infer<typeof schema>; export const config=schema.parse(process.env);
