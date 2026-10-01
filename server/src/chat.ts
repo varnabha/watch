@@ -1,0 +1,1 @@
+import {z} from 'zod'; export const messageSchema=z.object({text:z.string().trim().min(1).max(1000)}).strict(); export type Message={from:string;text:string;at:number}; export class Chat {messages:Message[]=[];add(from:string,text:string){const m={from,text,at:Date.now()};this.messages.push(m);this.messages=this.messages.slice(-200);return m;}}
