@@ -1,0 +1,1 @@
+export type State={movie:string|null;playing:boolean;position:number;updatedAt:number;rate:1}; export const expected=(s:State,offset=0)=>s.playing?s.position+(Date.now()+offset-s.updatedAt)/1000:s.position; export function correction(local:number,remote:number){const d=remote-local,a=Math.abs(d);return a>1?{seek:remote,rate:1}:a>.25?{rate:d>0?1.05:.95}:{rate:1};}
