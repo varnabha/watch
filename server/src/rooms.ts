@@ -1,2 +1,60 @@
-export type RoomState={movie:string|null;playing:boolean;position:number;updatedAt:number;rate:1}; export const expectedPosition=(s:RoomState,now=Date.now())=>s.playing?s.position+(now-s.updatedAt)/1000:s.position;
-export class Room {state:RoomState={movie:null,playing:false,position:0,updatedAt:Date.now(),rate:1};members=new Map<string,{email:string;name:string;buffering:boolean}>();wasPlaying=false; constructor(public id='main'){} join(socketId:string,user:{email:string;name:string}){for(const [id,m] of this.members)if(m.email===user.email)this.members.delete(id);if(![...this.members.values()].some(m=>m.email===user.email)&&this.members.size>=2)throw new Error('Room is full');this.members.set(socketId,{...user,buffering:false});} leave(id:string){this.members.delete(id)} update(p:Partial<Pick<RoomState,'movie'|'playing'|'position'>>,now=Date.now()){this.state={...this.state,...p,position:p.position??expectedPosition(this.state,now),updatedAt:now};return this.state} buffering(id:string,value:boolean,now=Date.now()){const m=this.members.get(id);if(!m)return; m.buffering=value;if(value&&this.state.playing){this.wasPlaying=true;this.update({playing:false},now);}if(!value&&this.wasPlaying&&[...this.members.values()].every(x=>!x.buffering)){this.wasPlaying=false;this.update({playing:true},now);}}}
+export type RoomState = {
+  movie: string | null;
+  playing: boolean;
+  position: number;
+  updatedAt: number;
+  rate: 1;
+};
+
+export const expectedPosition = (s: RoomState, now = Date.now()) =>
+  s.playing ? s.position + (now - s.updatedAt) / 1000 : s.position;
+
+export class Room {
+  state: RoomState = { movie: null, playing: false, position: 0, updatedAt: Date.now(), rate: 1 };
+  members = new Map<string, { email: string; name: string; buffering: boolean }>();
+  wasPlaying = false;
+
+  constructor(public id = 'main') {}
+
+  join(socketId: string, user: { email: string; name: string }) {
+    for (const [id, m] of this.members) if (m.email === user.email) this.members.delete(id);
+    if (![...this.members.values()].some((m) => m.email === user.email) && this.members.size >= 2)
+      throw new Error('Room is full');
+    this.members.set(socketId, { ...user, buffering: false });
+  }
+
+  leave(id: string, now = Date.now()) {
+    this.members.delete(id);
+    if (this.wasPlaying && [...this.members.values()].every((x) => !x.buffering)) {
+      this.wasPlaying = false;
+      this.update({ playing: true }, now);
+    }
+  }
+
+  update(p: Partial<Pick<RoomState, 'movie' | 'playing' | 'position'>>, now = Date.now()) {
+    if (p.playing === false && p.playing !== undefined && !this.wasPlaying) {
+      this.wasPlaying = false;
+    }
+    this.state = {
+      ...this.state,
+      ...p,
+      position: p.position ?? expectedPosition(this.state, now),
+      updatedAt: now,
+    };
+    return this.state;
+  }
+
+  buffering(id: string, value: boolean, now = Date.now()) {
+    const m = this.members.get(id);
+    if (!m) return;
+    m.buffering = value;
+    if (value && this.state.playing) {
+      this.wasPlaying = true;
+      this.update({ playing: false }, now);
+    }
+    if (!value && this.wasPlaying && [...this.members.values()].every((x) => !x.buffering)) {
+      this.wasPlaying = false;
+      this.update({ playing: true }, now);
+    }
+  }
+}
